@@ -1,0 +1,11 @@
+name = "vergani-watch-list-api"
+main = "index.js"
+compatibility_date = "2024-10-11"
+
+[vars]
+SHOPIFY_API_VERSION = "2024-10"
+
+# Secrets (set via CLI):
+# wrangler secret put SHOPIFY_STORE_URL
+# wrangler secret put SHOPIFY_ACCESS_TOKEN
+
