@@ -23,26 +23,6 @@ npx wrangler secret put SHOPIFY_ACCESS_TOKEN
 npm run deploy
 ```
 
-## API
-
-**Add Product:**
-```bash
-POST /api/watchlist/add
-{
-  "companyLocationId": "gid://shopify/CompanyLocation/123456789",
-  "productId": "gid://shopify/Product/123456789"
-}
-```
-
-**Remove Product:**
-```bash
-DELETE /api/watchlist/remove
-{
-  "companyLocationId": "gid://shopify/CompanyLocation/123456789",
-  "productId": "gid://shopify/Product/123456789"
-}
-```
-
 ## Stack
 
 - Hono (3KB framework)
