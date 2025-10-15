@@ -1,6 +1,9 @@
 # Local development environment variables
 # Copy this file to .dev.vars and fill in your actual values
 
+# API Security
+API_KEY=your-secure-api-key-here
+
 SHOPIFY_API_VERSION=2024-10
 
 # Germany Store

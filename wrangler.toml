@@ -5,7 +5,15 @@ compatibility_date = "2024-10-11"
 [vars]
 SHOPIFY_API_VERSION = "2024-10"
 
+# KV Namespace for rate limiting
+[[kv_namespaces]]
+binding = "RATE_LIMIT"
+id = "your_kv_namespace_id"
+preview_id = "your_preview_kv_namespace_id"
+
 # Secrets (set via CLI):
-# wrangler secret put SHOPIFY_STORE_URL
-# wrangler secret put SHOPIFY_ACCESS_TOKEN
+# wrangler secret put API_KEY
+# wrangler secret put SHOPIFY_STORE_URL_DE
+# wrangler secret put SHOPIFY_ACCESS_TOKEN_DE
+# ... repeat for CH, AT, IT, FR, NL
 

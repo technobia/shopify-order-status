@@ -1,6 +1,6 @@
-# Vergani Watch List API
+# Shopify Order Status
 
-Lightweight serverless API for managing Shopify product watch lists on Cloudflare Workers.
+Lightweight serverless API for managing Shopify order lists on Cloudflare Workers.
 
 ## Setup
 
@@ -18,6 +18,9 @@ npm run dev
 ```bash
 npx wrangler login
 
+# Set API key for authentication
+npx wrangler secret put API_KEY
+
 # Set secrets for each store (DE, CH, AT, IT, FR, NL)
 npx wrangler secret put SHOPIFY_STORE_URL_DE
 npx wrangler secret put SHOPIFY_ACCESS_TOKEN_DE
@@ -30,17 +33,13 @@ npm run deploy
 
 ## API
 
-All endpoints require a store code: `DE`, `CH`, `AT`, `IT`, `FR`, or `NL`
+All endpoints require:
+- Store code: `DE`, `CH`, `AT`, `IT`, `FR`, or `NL`
+- API Key authentication via `X-API-Key` header
 
 **Get Order by Number:**
 ```bash
 GET /api/:store/orders/:orderNumber
-
-# Example for Germany store
-curl http://localhost:8787/api/de/orders/1001
-
-# Example for Switzerland store  
-curl http://localhost:8787/api/ch/orders/1001
 ```
 
 **Order Lookup (supports special characters):**
@@ -50,14 +49,21 @@ POST /api/:store/orders/lookup
   "orderNumber": "DE-#14974",
   "email": "customer@example.com"  // optional
 }
+```
 
-# Example for Germany store
-curl --location 'http://localhost:8787/api/de/orders/lookup' \
---header 'Content-Type: application/json' \
---data '{
-  "orderNumber": "DE-#14974",
-  "email": "customer@example.com"
-}'
+## Security
+
+This API includes the following security features:
+
+- **API Key Authentication**: All requests require a valid API key via the `X-API-Key` header
+- **CORS Configuration**: Configurable cross-origin resource sharing
+- **Secure Credentials**: All secrets stored as environment variables
+- **Input Validation**: Request validation to prevent malicious inputs
+
+**Generating a Secure API Key:**
+```bash
+# Generate a secure random API key (macOS/Linux)
+openssl rand -base64 32
 ```
 
 ## Stack
