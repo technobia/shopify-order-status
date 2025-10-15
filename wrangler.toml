@@ -1,4 +1,4 @@
-name = "vergani-watch-list-api"
+name = "shopify-order-status"
 main = "index.js"
 compatibility_date = "2024-10-11"
 
