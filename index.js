@@ -35,8 +35,8 @@ app.use('/*', cors({
   credentials: true,
 }));
 
-app.get('/api/:store/orders/:orderNumber', rateLimit({ limit: 60, window: 60 }), apiKeyAuth, getOrderByOrderNumber);
+app.get('/api/:store/orders/:orderNumber', rateLimit(), apiKeyAuth, getOrderByOrderNumber);
 
-app.post('/api/:store/orders/lookup', rateLimit({ limit: 60, window: 60 }), apiKeyAuth, lookupOrder);
+app.post('/api/:store/orders/lookup', rateLimit(), apiKeyAuth, lookupOrder);
 
 export default app;
