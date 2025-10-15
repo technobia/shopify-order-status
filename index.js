@@ -31,120 +31,117 @@ const shopifyGraphQL = async (env, query, variables = {}) => {
   return data;
 };
 
-const getWatchList = async (env, companyLocationId) => {
-  const query = `
-    query getCompanyLocation($id: ID!) {
-      companyLocation(id: $id) {
-        id
-        metafield(namespace: "custom", key: "watch_list") {
-          value
+app.get('/api/orders/:orderNumber', async (c) => {
+  try {
+    const orderNumber = c.req.param('orderNumber');
+    const env = c.env;
+
+    const query = `
+      query getOrder($orderName: String!) {
+        orders(first: 1, query: $orderName) {
+          edges {
+            node {
+              id
+              name
+              email
+              createdAt
+              displayFulfillmentStatus
+              displayFinancialStatus
+              totalPriceSet {
+                shopMoney {
+                  amount
+                  currencyCode
+                }
+              }
+              customer {
+                firstName
+                lastName
+                email
+              }
+              shippingAddress {
+                firstName
+                lastName
+                address1
+                address2
+                city
+                province
+                country
+                zip
+              }
+              lineItems(first: 50) {
+                edges {
+                  node {
+                    id
+                    name
+                    quantity
+                    variant {
+                      id
+                      title
+                      price
+                    }
+                  }
+                }
+              }
+              fulfillments {
+                id
+                status
+                trackingInfo {
+                  company
+                  number
+                  url
+                }
+                createdAt
+                updatedAt
+              }
+            }
+          }
         }
       }
+    `;
+
+    const variables = {
+      orderName: `name:${orderNumber}`,
+    };
+
+    const result = await shopifyGraphQL(env, query, variables);
+
+    if (!result.data.orders.edges.length) {
+      return c.json({ error: 'Order not found' }, 404);
     }
-  `;
 
-  const result = await shopifyGraphQL(env, query, {
-    id: companyLocationId,
-  });
+    const order = result.data.orders.edges[0].node;
 
-  const metafieldValue = result.data?.companyLocation?.metafield?.value;
-  return metafieldValue ? JSON.parse(metafieldValue) : [];
-};
-
-const updateWatchList = async (env, companyLocationId, watchList) => {
-  const mutation = `
-    mutation setMetafield($metafields: [MetafieldsSetInput!]!) {
-      metafieldsSet(metafields: $metafields) {
-        metafields {
-          id
-          namespace
-          key
-          value
-        }
-        userErrors {
-          field
-          message
-        }
-      }
-    }
-  `;
-
-  const result = await shopifyGraphQL(env, mutation, {
-    metafields: [
-      {
-        ownerId: companyLocationId,
-        namespace: 'custom',
-        key: 'watch_list',
-        value: JSON.stringify(watchList),
-        type: 'list.product_reference',
+    const response = {
+      orderId: order.id,
+      orderNumber: order.name,
+      createdAt: order.createdAt,
+      fulfillmentStatus: order.displayFulfillmentStatus,
+      financialStatus: order.displayFinancialStatus,
+      total: order.totalPriceSet.shopMoney,
+      customer: {
+        name: `${order.customer?.firstName || ''} ${order.customer?.lastName || ''}`.trim(),
+        email: order.customer?.email || order.email,
       },
-    ],
-  });
+      shippingAddress: order.shippingAddress,
+      items: order.lineItems.edges.map(edge => ({
+        id: edge.node.id,
+        name: edge.node.name,
+        quantity: edge.node.quantity,
+        variant: edge.node.variant?.title,
+        price: edge.node.variant?.price,
+      })),
+      fulfillments: order.fulfillments.map(fulfillment => ({
+        id: fulfillment.id,
+        status: fulfillment.status,
+        tracking: fulfillment.trackingInfo,
+        createdAt: fulfillment.createdAt,
+        updatedAt: fulfillment.updatedAt,
+      })),
+    };
 
-  if (result.data?.metafieldsSet?.userErrors?.length > 0) {
-    throw new Error(`Metafield update errors: ${JSON.stringify(result.data.metafieldsSet.userErrors)}`);
-  }
-
-  return result;
-};
-
-app.post('/api/watchlist/add', async (c) => {
-  try {
-    const { companyLocationId, productId } = await c.req.json();
-
-    if (!companyLocationId || !productId) {
-      return c.json({ error: 'companyLocationId and productId are required' }, 400);
-    }
-
-    const watchList = await getWatchList(c.env, companyLocationId);
-
-    if (watchList.includes(productId)) {
-      return c.json({
-        message: 'Product already in watch list',
-        watchList,
-      });
-    }
-
-    watchList.push(productId);
-    await updateWatchList(c.env, companyLocationId, watchList);
-
-    return c.json({
-      message: 'Product added to watch list',
-      watchList,
-    });
+    return c.json(response);
   } catch (error) {
-    console.error('Error adding to watch list:', error);
-    return c.json({ error: error.message }, 500);
-  }
-});
-
-app.delete('/api/watchlist/remove', async (c) => {
-  try {
-    const { companyLocationId, productId } = await c.req.json();
-
-    if (!companyLocationId || !productId) {
-      return c.json({ error: 'companyLocationId and productId are required' }, 400);
-    }
-
-    const watchList = await getWatchList(c.env, companyLocationId);
-
-    const index = watchList.indexOf(productId);
-    if (index === -1) {
-      return c.json({
-        error: 'Product not found in watch list',
-        watchList,
-      }, 404);
-    }
-
-    watchList.splice(index, 1);
-    await updateWatchList(c.env, companyLocationId, watchList);
-
-    return c.json({
-      message: 'Product removed from watch list',
-      watchList,
-    });
-  } catch (error) {
-    console.error('Error removing from watch list:', error);
+    console.error('Error fetching order:', error);
     return c.json({ error: error.message }, 500);
   }
 });
