@@ -2,15 +2,18 @@ export const rateLimit = (options = {}) => {
   const { limit = 60, window = 60 } = options;
 
   return async (c, next) => {
+    const kv = c.env.RATE_LIMIT;
+
+    if (!kv) {
+      console.warn('Rate limiting KV namespace not configured - skipping rate limit check');
+      await next();
+      return;
+    }
+
     const apiKey = c.req.header('X-API-Key') || 'anonymous';
     const ip = c.req.header('CF-Connecting-IP') || 'unknown';
     const identifier = `${apiKey}:${ip}`;
     const key = `ratelimit:${identifier}`;
-
-    const kv = c.env.RATE_LIMIT;
-    if (!kv) {
-      return c.json({ error: 'Rate limiting not configured' }, 500);
-    }
 
     const currentCount = await kv.get(key);
     const count = currentCount ? parseInt(currentCount) : 0;
