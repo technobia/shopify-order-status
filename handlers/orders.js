@@ -36,12 +36,8 @@ export const lookupOrder = async (c) => {
 
     const { storeUrl, accessToken } = getStoreCredentials(c.env, store);
 
-    const queryString = email
-      ? `name:"${orderNumber}" AND email:${email}`
-      : `name:"${orderNumber}"`;
-
     const result = await shopifyGraphQL(storeUrl, accessToken, ORDER_QUERY, {
-      orderName: queryString,
+      orderName: `name:"${orderNumber}"`,
     });
 
     if (!result.data.orders.edges.length) {
@@ -50,11 +46,14 @@ export const lookupOrder = async (c) => {
 
     const order = result.data.orders.edges[0].node;
 
-    if (email && order.email.toLowerCase() !== email.toLowerCase()) {
-      return c.json({ error: 'Order not found or email does not match' }, 404);
+    if (email && order.email.toLowerCase() === email.toLowerCase()) {
+      return c.json(formatOrderResponse(order));
     }
 
-    return c.json(formatOrderResponse(order));
+    return c.json({
+      orderId: order.id,
+      tags: order.tags,
+    });
   } catch (error) {
     return c.json({ error: error.message }, 500);
   }
