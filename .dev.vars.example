@@ -1,7 +1,28 @@
 # Local development environment variables
 # Copy this file to .dev.vars and fill in your actual values
 
-SHOPIFY_STORE_URL=your-store.myshopify.com
-SHOPIFY_ACCESS_TOKEN=your_admin_api_access_token
 SHOPIFY_API_VERSION=2024-10
 
+# Germany Store
+SHOPIFY_STORE_URL_DE=your-de-store.myshopify.com
+SHOPIFY_ACCESS_TOKEN_DE=shpat_your_de_token
+
+# Switzerland Store
+SHOPIFY_STORE_URL_CH=your-ch-store.myshopify.com
+SHOPIFY_ACCESS_TOKEN_CH=shpat_your_ch_token
+
+# Austria Store
+SHOPIFY_STORE_URL_AT=your-at-store.myshopify.com
+SHOPIFY_ACCESS_TOKEN_AT=shpat_your_at_token
+
+# Italy Store
+SHOPIFY_STORE_URL_IT=your-it-store.myshopify.com
+SHOPIFY_ACCESS_TOKEN_IT=shpat_your_it_token
+
+# France Store
+SHOPIFY_STORE_URL_FR=your-fr-store.myshopify.com
+SHOPIFY_ACCESS_TOKEN_FR=shpat_your_fr_token
+
+# Netherlands Store
+SHOPIFY_STORE_URL_NL=your-nl-store.myshopify.com
+SHOPIFY_ACCESS_TOKEN_NL=shpat_your_nl_token

@@ -5,6 +5,31 @@ const app = new Hono();
 
 app.use('/*', cors());
 
+const STORES = {
+  DE: { code: 'DE', name: 'Germany' },
+  CH: { code: 'CH', name: 'Switzerland' },
+  AT: { code: 'AT', name: 'Austria' },
+  IT: { code: 'IT', name: 'Italy' },
+  FR: { code: 'FR', name: 'France' },
+  NL: { code: 'NL', name: 'Netherlands' },
+};
+
+const getStoreCredentials = (env, storeCode) => {
+  const store = STORES[storeCode];
+  if (!store) {
+    throw new Error(`Invalid store code: ${storeCode}`);
+  }
+
+  const storeUrl = env[`SHOPIFY_STORE_URL_${storeCode}`];
+  const accessToken = env[`SHOPIFY_ACCESS_TOKEN_${storeCode}`];
+
+  if (!storeUrl || !accessToken) {
+    throw new Error(`Missing credentials for store: ${storeCode}`);
+  }
+
+  return { storeUrl, accessToken };
+};
+
 const ORDER_QUERY = `
   query getOrder($orderName: String!) {
     orders(first: 1, query: $orderName) {
@@ -69,16 +94,15 @@ const ORDER_QUERY = `
   }
 `;
 
-const shopifyGraphQL = async (env, query, variables = {}) => {
-  const store = env.SHOPIFY_STORE_URL;
-  const version = env.SHOPIFY_API_VERSION || '2024-10';
-  const url = `https://${store}/admin/api/${version}/graphql.json`;
+const shopifyGraphQL = async (storeUrl, accessToken, query, variables = {}) => {
+  const version = '2024-10';
+  const url = `https://${storeUrl}/admin/api/${version}/graphql.json`;
 
   const response = await fetch(url, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'X-Shopify-Access-Token': env.SHOPIFY_ACCESS_TOKEN,
+      'X-Shopify-Access-Token': accessToken,
     },
     body: JSON.stringify({ query, variables }),
   });
@@ -126,10 +150,14 @@ const formatOrderResponse = (order) => {
   };
 };
 
-app.get('/api/orders/:orderNumber', async (c) => {
+app.get('/api/:store/orders/:orderNumber', async (c) => {
   try {
+    const store = c.req.param('store').toUpperCase();
     const orderNumber = c.req.param('orderNumber');
-    const result = await shopifyGraphQL(c.env, ORDER_QUERY, {
+
+    const { storeUrl, accessToken } = getStoreCredentials(c.env, store);
+
+    const result = await shopifyGraphQL(storeUrl, accessToken, ORDER_QUERY, {
       orderName: `name:"${orderNumber}"`,
     });
 
@@ -144,8 +172,9 @@ app.get('/api/orders/:orderNumber', async (c) => {
   }
 });
 
-app.post('/api/orders/lookup', async (c) => {
+app.post('/api/:store/orders/lookup', async (c) => {
   try {
+    const store = c.req.param('store').toUpperCase();
     const body = await c.req.json();
     const { email, orderNumber } = body;
 
@@ -153,11 +182,13 @@ app.post('/api/orders/lookup', async (c) => {
       return c.json({ error: 'orderNumber is required' }, 400);
     }
 
+    const { storeUrl, accessToken } = getStoreCredentials(c.env, store);
+
     const queryString = email
       ? `name:"${orderNumber}" AND email:${email}`
       : `name:"${orderNumber}"`;
 
-    const result = await shopifyGraphQL(c.env, ORDER_QUERY, {
+    const result = await shopifyGraphQL(storeUrl, accessToken, ORDER_QUERY, {
       orderName: queryString,
     });
 
