@@ -2,22 +2,31 @@ import { getStoreCredentials } from '../utils/stores.js';
 import { shopifyGraphQL, ORDER_QUERY } from '../utils/shopify.js';
 import { formatOrderResponse } from '../utils/formatters.js';
 
+const fetchOrder = async (env, store, orderNumber) => {
+  const { storeUrl, accessToken } = getStoreCredentials(env, store);
+
+  const result = await shopifyGraphQL(storeUrl, accessToken, ORDER_QUERY, {
+    orderName: `name:"${orderNumber}"`,
+  });
+
+  if (!result.data.orders.edges.length) {
+    return null;
+  }
+
+  return result.data.orders.edges[0].node;
+};
+
 export const getOrderByOrderNumber = async (c) => {
   try {
     const store = c.req.param('store').toUpperCase();
     const orderNumber = c.req.param('orderNumber');
 
-    const { storeUrl, accessToken } = getStoreCredentials(c.env, store);
+    const order = await fetchOrder(c.env, store, orderNumber);
 
-    const result = await shopifyGraphQL(storeUrl, accessToken, ORDER_QUERY, {
-      orderName: `name:"${orderNumber}"`,
-    });
-
-    if (!result.data.orders.edges.length) {
+    if (!order) {
       return c.json({ error: 'Order not found' }, 404);
     }
 
-    const order = result.data.orders.edges[0].node;
     return c.json(formatOrderResponse(order));
   } catch (error) {
     return c.json({ error: error.message }, 500);
@@ -34,17 +43,11 @@ export const lookupOrder = async (c) => {
       return c.json({ error: 'orderNumber is required' }, 400);
     }
 
-    const { storeUrl, accessToken } = getStoreCredentials(c.env, store);
+    const order = await fetchOrder(c.env, store, orderNumber);
 
-    const result = await shopifyGraphQL(storeUrl, accessToken, ORDER_QUERY, {
-      orderName: `name:"${orderNumber}"`,
-    });
-
-    if (!result.data.orders.edges.length) {
+    if (!order) {
       return c.json({ error: 'Order not found' }, 404);
     }
-
-    const order = result.data.orders.edges[0].node;
 
     if (email && order.email.toLowerCase() === email.toLowerCase()) {
       return c.json(formatOrderResponse(order));
