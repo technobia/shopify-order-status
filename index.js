@@ -62,6 +62,7 @@ const ORDER_QUERY = `
             createdAt
             updatedAt
           }
+          tags
         }
       }
     }
@@ -121,6 +122,7 @@ const formatOrderResponse = (order) => {
       createdAt: fulfillment.createdAt,
       updatedAt: fulfillment.updatedAt,
     })),
+    tags: order.tags,
   };
 };
 
@@ -160,7 +162,7 @@ app.post('/api/orders/lookup', async (c) => {
     });
 
     if (!result.data.orders.edges.length) {
-      return c.json({ error: error.message }, 500);
+      return c.json({ error: 'Order not found' }, 404);
     }
 
     const order = result.data.orders.edges[0].node;
