@@ -51,21 +51,6 @@ POST /api/:store/orders/lookup
 }
 ```
 
-## Security
-
-This API includes the following security features:
-
-- **API Key Authentication**: All requests require a valid API key via the `X-API-Key` header
-- **CORS Configuration**: Configurable cross-origin resource sharing
-- **Secure Credentials**: All secrets stored as environment variables
-- **Input Validation**: Request validation to prevent malicious inputs
-
-**Generating a Secure API Key:**
-```bash
-# Generate a secure random API key (macOS/Linux)
-openssl rand -base64 32
-```
-
 ## Stack
 
 - Hono (3KB framework)
