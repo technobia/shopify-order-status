@@ -56,15 +56,9 @@ export const lookupOrder = async (c) => {
     return c.json({
       orderId: order.id,
       tags: order.tags,
-      fulfillments: order.fulfillments.map(fulfillment => ({
-        id: fulfillment.id,
-        status: fulfillment.status,
-        tracking: fulfillment.trackingInfo,
-        createdAt: fulfillment.createdAt,
-        updatedAt: fulfillment.updatedAt,
-      })),
-      createdAt: order.createdAt,
+      fulfillmentStatus: order.displayFulfillmentStatus,
       financialStatus: order.displayFinancialStatus,
+      createdAt: order.createdAt,
     });
   } catch (error) {
     return c.json({ error: error.message }, 500);
