@@ -59,6 +59,7 @@ export const lookupOrder = async (c) => {
       fulfillmentStatus: order.displayFulfillmentStatus,
       financialStatus: order.displayFinancialStatus,
       createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
     });
   } catch (error) {
     return c.json({ error: error.message }, 500);

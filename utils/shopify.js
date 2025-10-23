@@ -7,6 +7,7 @@ export const ORDER_QUERY = `
           name
           email
           createdAt
+          updatedAt
           displayFulfillmentStatus
           displayFinancialStatus
           totalPriceSet {

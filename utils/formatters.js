@@ -3,6 +3,7 @@ export const formatOrderResponse = (order) => {
     orderId: order.id,
     orderNumber: order.name,
     createdAt: order.createdAt,
+    updatedAt: order.updatedAt,
     fulfillmentStatus: order.displayFulfillmentStatus,
     financialStatus: order.displayFinancialStatus,
     total: order.totalPriceSet.shopMoney,
